@@ -1,6 +1,5 @@
-// import AppError from '../errors/AppError';
-
 import { getCustomRepository, getRepository } from 'typeorm';
+import AppError from '../errors/AppError';
 import Category from '../models/Category';
 import Transaction from '../models/Transaction';
 import TransactionsRepository from '../repositories/TransactionsRepository';
@@ -20,7 +19,7 @@ class CreateTransactionService {
     const { total } = await transactionsRepository.getBalance();
 
     if(type === 'outcome' && total - value < 0){
-      throw new Error('Invalid transaction, balance negative');
+      throw new AppError('Invalid transaction, balance negative');
     }
 
     let categoryInstance = await categoryRepository.findOne({

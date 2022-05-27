@@ -1,12 +1,16 @@
 import { Router } from 'express';
 import { getCustomRepository, getRepository } from 'typeorm';
+import multer from 'multer';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import AlterVisualizationTransactionService from '../services/AlterVisualizationTransactionsService';
 import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
+import ImportTransactionsService from '../services/ImportTransactionsService';
+import uploadConfig from '../config/upload';
 
 const transactionsRouter = Router();
+const upload = multer(uploadConfig);
 
 transactionsRouter.get('/', async (request, response) => {
   const transactionsRepository = getCustomRepository(TransactionsRepository);
@@ -42,8 +46,13 @@ transactionsRouter.delete('/:id', async (request, response) => {
   return response.status(200).json(transaction);
 });
 
-transactionsRouter.post('/import', async (request, response) => {
-  // TODO
+transactionsRouter.post('/import', upload.single('file'), async (request, response) => {
+  const fileCsv = request.file;
+  const importTransactionService = new ImportTransactionsService();
+
+  const transactions = await importTransactionService.execute(fileCsv);
+
+  response.status(200).json(transactions);
 });
 
 export default transactionsRouter;
