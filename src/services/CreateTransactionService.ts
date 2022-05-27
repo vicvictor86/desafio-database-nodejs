@@ -1,6 +1,6 @@
 // import AppError from '../errors/AppError';
 
-import { getRepository } from 'typeorm';
+import { getCustomRepository, getRepository } from 'typeorm';
 import Category from '../models/Category';
 import Transaction from '../models/Transaction';
 import TransactionsRepository from '../repositories/TransactionsRepository';
@@ -14,8 +14,14 @@ interface Request{
 
 class CreateTransactionService {
   public async execute({ type, title, value, category }: Request): Promise<Transaction> {
-    const transactionsRepository = getRepository(Transaction);
+    const transactionsRepository = getCustomRepository(TransactionsRepository);
     const categoryRepository = getRepository(Category);
+
+    const { total } = await transactionsRepository.getBalance();
+
+    if(type === 'outcome' && total - value < 0){
+      throw new Error('Invalid transaction, balance negative');
+    }
 
     let categoryInstance = await categoryRepository.findOne({
       where: {
